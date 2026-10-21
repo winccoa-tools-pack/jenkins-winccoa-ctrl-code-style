@@ -33,7 +33,7 @@ class CtrlStyleCheck implements Serializable {
     }
     String reportDirectory = safeRelativePath(options.reportDirectory ?: '.ctl-style-reports')
     String reportRoot = options.reportRoot == null ? '' : safeRelativePath(options.reportRoot)
-    boolean showDiff = options.showDiff == null ? false : options.showDiff as boolean
+    boolean showDiff = options.showDiff == null ? true : options.showDiff as boolean
 
     return [workerPath: workerPath, sourcePaths: sourcePaths, version: version,
             packageVersion: packageVersion, timeoutMs: timeoutMs.toInteger(),
@@ -63,9 +63,9 @@ report_root_path=''' + shellQuote(config.reportRoot) + '''
 report_path=''' + shellQuote(reportPath) + '''
 log_path=''' + shellQuote(logPath) + '''
 worker="$(realpath -- "$WORKSPACE/$worker_path")"
-source="$(realpath -- "$WORKSPACE/$source_path")"
+source="$WORKSPACE/$source_path"
 if [ -n "$report_root_path" ]; then
-  report_root="$(realpath -- "$WORKSPACE/$report_root_path")"
+  report_root="$WORKSPACE/$report_root_path"
 else
   report_root="$(dirname -- "$worker")"
 fi

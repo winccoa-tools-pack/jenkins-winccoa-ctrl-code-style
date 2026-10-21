@@ -63,7 +63,7 @@ agent. The library itself does not start nested containers.
 | `timeoutMs` | No | `120000` | Timeout passed to WCCOActrl |
 | `reportDirectory` | No | `.ctl-style-reports` | Workspace-relative log and SARIF directory |
 | `reportRoot` | No | Worker parent | Optional workspace-relative root used for SARIF source locations |
-| `showDiff` | No | `false` | Include formatter diffs in captured logs |
+| `showDiff` | No | `true` | Include unified formatter diffs in captured logs |
 
 All configured paths must stay inside the Jenkins workspace. The package
 creates one SARIF report and one log per source path. Formatting findings make

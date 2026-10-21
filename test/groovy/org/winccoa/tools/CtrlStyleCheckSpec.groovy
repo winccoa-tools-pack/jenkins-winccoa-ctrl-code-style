@@ -22,7 +22,7 @@ class CtrlStyleCheckSpec extends Specification {
     config.timeoutMs == 120000
     config.reportDirectory == '.ctl-style-reports'
     config.reportRoot == ''
-    !config.showDiff
+    config.showDiff
   }
 
   def 'installs the pinned npm package before invoking its CLI entry point'() {
@@ -38,6 +38,7 @@ class CtrlStyleCheckSpec extends Specification {
     install.contains("@winccoa-tools-pack/npm-winccoa-ctrl-code-style@0.2.1")
     command.contains('GITHUB_WORKSPACE="$WORKSPACE" node "$cli" check "$worker"')
     !command.contains('npx --yes')
+    !command.contains('--no-diff')
   }
 
   def 'global pipeline step parses with the helper available'() {
@@ -77,6 +78,7 @@ class CtrlStyleCheckSpec extends Specification {
     String command = helper.command(config, config.sourcePaths[0], 0)
     command.contains('report_root_path=')
     command.contains('report_root="$(dirname -- "$worker")"')
+    command.contains('source="$WORKSPACE/$source_path"')
   }
 
   def 'quotes an explicit report root as a workspace-relative path'() {
@@ -87,7 +89,7 @@ class CtrlStyleCheckSpec extends Specification {
 
     then:
     command.contains("report_root_path='project'")
-    command.contains('report_root="$(realpath -- "$WORKSPACE/$report_root_path")"')
+    command.contains('report_root="$WORKSPACE/$report_root_path"')
   }
 
   def 'quotes single quotes in shell arguments'() {
