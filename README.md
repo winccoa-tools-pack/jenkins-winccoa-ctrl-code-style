@@ -32,8 +32,8 @@ pipeline {
     stage('CTL style') {
       steps {
         winccoaCtrlStyleCheck(
-          workerPath: 'UiFiles',
-          sourcePaths: ['UiFiles', 'Test', 'Subprojects', 'AddOns'],
+          workerPath: 'worker-project',
+          sourcePaths: ['worker-project', 'additional-source'],
           reportRoot: '.',
           version: '3.21',
           packageVersion: '0.2.1'
@@ -43,6 +43,10 @@ pipeline {
   }
 }
 ```
+
+Replace `worker-project` and `additional-source` with paths from your own
+workspace. `workerPath` must identify a runnable WinCC OA project; each entry
+in `sourcePaths` is scanned separately and receives its own report.
 
 If Docker is managed by the consuming job, the library step can run inside its
 existing `docker.image(...).inside { ... }` block or on a preconfigured Linux
