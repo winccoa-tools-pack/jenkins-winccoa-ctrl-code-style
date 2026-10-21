@@ -21,7 +21,7 @@ class CtrlStyleCheckSpec extends Specification {
     config.packageVersion == '0.2.1'
     config.timeoutMs == 120000
     config.reportDirectory == '.ctl-style-reports'
-    config.reportRoot == '.'
+    config.reportRoot == ''
     !config.showDiff
   }
 
@@ -63,19 +63,31 @@ class CtrlStyleCheckSpec extends Specification {
     !first.contains('--no-register')
     second.contains('--no-register')
     first.contains('--report-format sarif')
-    first.contains('realpath -- "$WORKSPACE/$report_root_path"')
+    first.contains('report_root="$(dirname -- "$worker")"')
     first.contains('--source "$source"')
   }
 
-  def 'resolves a report root through a workspace symlink'() {
+  def 'uses the worker parent when report root is omitted for a symlinked worker'() {
     when:
     Map config = helper.configuration([workerPath: '.oa-style-checkout/UiFiles',
-                                       sourcePaths: ['.oa-style-checkout/UiFiles'],
-                                       reportRoot: '.oa-style-checkout', version: '3.22'])
+                       sourcePaths: ['.oa-style-checkout/UiFiles'], version: '3.22'])
 
     then:
-    config.reportRoot == '.oa-style-checkout'
-    helper.command(config, config.sourcePaths[0], 0).contains("report_root_path='.oa-style-checkout'")
+    config.reportRoot == ''
+    String command = helper.command(config, config.sourcePaths[0], 0)
+    command.contains('report_root_path=')
+    command.contains('report_root="$(dirname -- "$worker")"')
+  }
+
+  def 'quotes an explicit report root as a workspace-relative path'() {
+    when:
+    Map config = helper.configuration([workerPath: 'project/worker', reportRoot: 'project',
+                                       version: '3.22'])
+    String command = helper.command(config, 'project/source', 0)
+
+    then:
+    command.contains("report_root_path='project'")
+    command.contains('report_root="$(realpath -- "$WORKSPACE/$report_root_path")"')
   }
 
   def 'quotes single quotes in shell arguments'() {

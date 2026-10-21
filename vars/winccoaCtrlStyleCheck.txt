@@ -18,7 +18,7 @@
 <li><code>packageVersion</code>: exact published checker version; default is <code>0.2.1</code>.</li>
 <li><code>timeoutMs</code>: WCCOActrl timeout in milliseconds; default is <code>120000</code>.</li>
 <li><code>reportDirectory</code>: workspace-relative directory for logs and SARIF; default is <code>.ctl-style-reports</code>.</li>
-<li><code>reportRoot</code>: workspace-relative root used to make SARIF source paths relative; default is <code>.</code>.</li>
+<li><code>reportRoot</code>: optional workspace-relative root used to make SARIF source paths relative; defaults to the real worker project's parent directory.</li>
 <li><code>showDiff</code>: include formatter diffs in logs; default is <code>false</code>.</li>
 </ul>
 <h2>Behavior</h2>

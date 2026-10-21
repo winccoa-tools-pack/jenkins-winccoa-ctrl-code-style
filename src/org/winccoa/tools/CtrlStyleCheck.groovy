@@ -32,7 +32,7 @@ class CtrlStyleCheck implements Serializable {
       throw new IllegalArgumentException('timeoutMs must be a positive integer below 1000000000')
     }
     String reportDirectory = safeRelativePath(options.reportDirectory ?: '.ctl-style-reports')
-    String reportRoot = safeRelativePath(options.reportRoot ?: '.')
+    String reportRoot = options.reportRoot == null ? '' : safeRelativePath(options.reportRoot)
     boolean showDiff = options.showDiff == null ? false : options.showDiff as boolean
 
     return [workerPath: workerPath, sourcePaths: sourcePaths, version: version,
@@ -59,18 +59,22 @@ test -f "$WORKSPACE/.ctl-style-tool/node_modules/@winccoa-tools-pack/npm-winccoa
   mkdir -p -- "$WORKSPACE/$report_directory"
 worker_path=''' + shellQuote(config.workerPath) + '''
 source_path=''' + shellQuote(sourcePath) + '''
-  report_root_path=''' + shellQuote(config.reportRoot) + '''
+report_root_path=''' + shellQuote(config.reportRoot) + '''
 report_path=''' + shellQuote(reportPath) + '''
 log_path=''' + shellQuote(logPath) + '''
 worker="$(realpath -- "$WORKSPACE/$worker_path")"
 source="$(realpath -- "$WORKSPACE/$source_path")"
+if [ -n "$report_root_path" ]; then
   report_root="$(realpath -- "$WORKSPACE/$report_root_path")"
-  cli="$WORKSPACE/.ctl-style-tool/node_modules/@winccoa-tools-pack/npm-winccoa-ctrl-code-style/dist/cjs/cli.js"
-  test -f "$cli" || { echo "Style checker CLI not installed: $cli" >&2; exit 127; }
+else
+  report_root="$(dirname -- "$worker")"
+fi
+cli="$WORKSPACE/.ctl-style-tool/node_modules/@winccoa-tools-pack/npm-winccoa-ctrl-code-style/dist/cjs/cli.js"
+test -f "$cli" || { echo "Style checker CLI not installed: $cli" >&2; exit 127; }
 status=0
-  node "$cli" check "$worker" -v ''' + shellQuote(config.version) + ' -t ' +
+node "$cli" check "$worker" -v ''' + shellQuote(config.version) + ' -t ' +
       shellQuote(config.timeoutMs.toString()) + ''' --report-root "$report_root" \
-    --report-format sarif --report-file "$WORKSPACE/$report_path"''' +
+  --report-format sarif --report-file "$WORKSPACE/$report_path"''' +
       registrationOption + diffOption + ''' --source "$source" > "$WORKSPACE/$log_path" 2>&1 || status=$?
 cat "$WORKSPACE/$log_path"
 exit "$status"
