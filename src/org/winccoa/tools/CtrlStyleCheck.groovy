@@ -72,7 +72,7 @@ fi
 cli="$WORKSPACE/.ctl-style-tool/node_modules/@winccoa-tools-pack/npm-winccoa-ctrl-code-style/dist/cjs/cli.js"
 test -f "$cli" || { echo "Style checker CLI not installed: $cli" >&2; exit 127; }
 status=0
-node "$cli" check "$worker" -v ''' + shellQuote(config.version) + ' -t ' +
+GITHUB_WORKSPACE="$WORKSPACE" node "$cli" check "$worker" -v ''' + shellQuote(config.version) + ' -t ' +
       shellQuote(config.timeoutMs.toString()) + ''' --report-root "$report_root" \
   --report-format sarif --report-file "$WORKSPACE/$report_path"''' +
       registrationOption + diffOption + ''' --source "$source" > "$WORKSPACE/$log_path" 2>&1 || status=$?

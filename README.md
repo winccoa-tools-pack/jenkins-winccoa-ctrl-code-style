@@ -65,8 +65,11 @@ All configured paths must stay inside the Jenkins workspace. The package
 creates one SARIF report and one log per source path. Formatting findings make
 the build `UNSTABLE`; invalid/missing reports and execution failures fail it.
 Reports are published with Warnings NG and archived after all scans.
-The `.ctl-style-tool` installation is retained because the registered worker
-config references the bundled StyleCheck sub-project inside that directory.
+The `.ctl-style-tool` installation and `.artifacts/StyleCheck` copy are retained
+because the registered worker config references the bundled StyleCheck
+sub-project. The CLI receives the mounted Jenkins workspace as
+`GITHUB_WORKSPACE`, ensuring this copy is created on the writable workspace
+mount rather than beside an externally mounted OA checkout.
 
 ## Development
 

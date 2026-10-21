@@ -36,7 +36,7 @@ class CtrlStyleCheckSpec extends Specification {
     then:
     install.contains('npm install --prefix "$WORKSPACE/.ctl-style-tool"')
     install.contains("@winccoa-tools-pack/npm-winccoa-ctrl-code-style@0.2.1")
-    command.contains('node "$cli" check "$worker"')
+    command.contains('GITHUB_WORKSPACE="$WORKSPACE" node "$cli" check "$worker"')
     !command.contains('npx --yes')
   }
 
