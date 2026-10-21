@@ -18,10 +18,11 @@
 <li><code>packageVersion</code>: exact published checker version; default is <code>0.2.1</code>.</li>
 <li><code>timeoutMs</code>: WCCOActrl timeout in milliseconds; default is <code>120000</code>.</li>
 <li><code>reportDirectory</code>: workspace-relative directory for logs and SARIF; default is <code>.ctl-style-reports</code>.</li>
+<li><code>reportRoot</code>: workspace-relative root used to make SARIF source paths relative; default is <code>.</code>.</li>
 <li><code>showDiff</code>: include formatter diffs in logs; default is <code>false</code>.</li>
 </ul>
 <h2>Behavior</h2>
 <p>The first check registers the runnable worker and bundled StyleCheck project, then starts CTRL in the same CLI invocation. Following source checks use <code>--no-register</code>. Scans run sequentially, each with its own log and SARIF report. Confirmed formatting findings make the build unstable; missing or invalid reports and execution failures fail the build. Reports are imported through Warnings NG and archived even when a scan fails.</p>
-<p>The caller must provide a Linux agent or container with the requested WinCC OA version, Node.js 20 or newer, npm, and registry access. This step does not allocate agents, check out sources, or create Docker containers; those remain under the consuming Jenkinsfile's control.</p>
+<p>The checker package is installed under <code>.ctl-style-tool</code> once per step and its CLI entry point is invoked directly with Node.js. Keep that directory available while the worker config references its bundled StyleCheck project. The caller must provide a Linux agent or container with the requested WinCC OA version, Node.js 20 or newer, npm, and registry access. This step does not allocate agents, check out sources, or create Docker containers; those remain under the consuming Jenkinsfile's control.</p>
 </body>
 </html>

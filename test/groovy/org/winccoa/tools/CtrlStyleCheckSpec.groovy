@@ -21,7 +21,23 @@ class CtrlStyleCheckSpec extends Specification {
     config.packageVersion == '0.2.1'
     config.timeoutMs == 120000
     config.reportDirectory == '.ctl-style-reports'
+    config.reportRoot == '.'
     !config.showDiff
+  }
+
+  def 'installs the pinned npm package before invoking its CLI entry point'() {
+    given:
+    Map config = helper.configuration([version: '3.22', packageVersion: '0.2.1'])
+
+    when:
+    String install = helper.installCommand(config)
+    String command = helper.command(config, 'UiFiles', 0)
+
+    then:
+    install.contains('npm install --prefix "$WORKSPACE/.ctl-style-tool"')
+    install.contains("@winccoa-tools-pack/npm-winccoa-ctrl-code-style@0.2.1")
+    command.contains('node "$cli" check "$worker"')
+    !command.contains('npx --yes')
   }
 
   def 'global pipeline step parses with the helper available'() {
@@ -47,7 +63,19 @@ class CtrlStyleCheckSpec extends Specification {
     !first.contains('--no-register')
     second.contains('--no-register')
     first.contains('--report-format sarif')
+    first.contains('realpath -- "$WORKSPACE/$report_root_path"')
     first.contains('--source "$source"')
+  }
+
+  def 'resolves a report root through a workspace symlink'() {
+    when:
+    Map config = helper.configuration([workerPath: '.oa-style-checkout/UiFiles',
+                                       sourcePaths: ['.oa-style-checkout/UiFiles'],
+                                       reportRoot: '.oa-style-checkout', version: '3.22'])
+
+    then:
+    config.reportRoot == '.oa-style-checkout'
+    helper.command(config, config.sourcePaths[0], 0).contains("report_root_path='.oa-style-checkout'")
   }
 
   def 'quotes single quotes in shell arguments'() {

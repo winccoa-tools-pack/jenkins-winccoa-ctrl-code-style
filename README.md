@@ -34,6 +34,7 @@ pipeline {
         winccoaCtrlStyleCheck(
           workerPath: 'UiFiles',
           sourcePaths: ['UiFiles', 'Test', 'Subprojects', 'AddOns'],
+          reportRoot: '.',
           version: '3.21',
           packageVersion: '0.2.1'
         )
@@ -57,12 +58,15 @@ agent. The library itself does not start nested containers.
 | `packageVersion` | No | `0.2.1` | Exact published npm checker version |
 | `timeoutMs` | No | `120000` | Timeout passed to WCCOActrl |
 | `reportDirectory` | No | `.ctl-style-reports` | Workspace-relative log and SARIF directory |
+| `reportRoot` | No | `.` | Workspace-relative root used for SARIF source locations |
 | `showDiff` | No | `false` | Include formatter diffs in captured logs |
 
 All configured paths must stay inside the Jenkins workspace. The package
 creates one SARIF report and one log per source path. Formatting findings make
 the build `UNSTABLE`; invalid/missing reports and execution failures fail it.
 Reports are published with Warnings NG and archived after all scans.
+The `.ctl-style-tool` installation is retained because the registered worker
+config references the bundled StyleCheck sub-project inside that directory.
 
 ## Development
 

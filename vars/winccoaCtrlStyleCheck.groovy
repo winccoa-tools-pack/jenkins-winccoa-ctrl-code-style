@@ -13,6 +13,12 @@ void call(Map options = [:]) {
   }
 
   try {
+    stage('Install CTL style checker') {
+      dir('.ctl-style-tool') {
+        deleteDir()
+      }
+      sh(script: CtrlStyleCheck.installCommand(config))
+    }
     config.sourcePaths.eachWithIndex { String sourcePath, int index ->
       stage('CTL style ' + sourcePath) {
         String report = CtrlStyleCheck.reportPath(config, sourcePath, index)

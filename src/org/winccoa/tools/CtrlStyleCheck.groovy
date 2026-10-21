@@ -7,7 +7,7 @@ class CtrlStyleCheck implements Serializable {
 
   static Map configuration(Map options) {
     Set<String> supported = ['workerPath', 'sourcePaths', 'version', 'packageVersion', 'timeoutMs',
-                             'reportDirectory', 'showDiff'] as Set
+                             'reportDirectory', 'reportRoot', 'showDiff'] as Set
     if (options.keySet().any { !supported.contains(it) }) {
       throw new IllegalArgumentException('Unsupported option; supported options: ' + supported.join(', '))
     }
@@ -32,11 +32,19 @@ class CtrlStyleCheck implements Serializable {
       throw new IllegalArgumentException('timeoutMs must be a positive integer below 1000000000')
     }
     String reportDirectory = safeRelativePath(options.reportDirectory ?: '.ctl-style-reports')
+    String reportRoot = safeRelativePath(options.reportRoot ?: '.')
     boolean showDiff = options.showDiff == null ? false : options.showDiff as boolean
 
     return [workerPath: workerPath, sourcePaths: sourcePaths, version: version,
             packageVersion: packageVersion, timeoutMs: timeoutMs.toInteger(),
-            reportDirectory: reportDirectory, showDiff: showDiff]
+            reportDirectory: reportDirectory, reportRoot: reportRoot, showDiff: showDiff]
+  }
+
+  static String installCommand(Map config) {
+    return '''npm install --prefix "$WORKSPACE/.ctl-style-tool" --no-save --no-audit --no-fund ''' +
+      shellQuote('@winccoa-tools-pack/npm-winccoa-ctrl-code-style@' + config.packageVersion) + '''
+test -f "$WORKSPACE/.ctl-style-tool/node_modules/@winccoa-tools-pack/npm-winccoa-ctrl-code-style/dist/cjs/cli.js"
+'''
   }
 
   static String command(Map config, String sourcePath, int index) {
@@ -51,14 +59,18 @@ class CtrlStyleCheck implements Serializable {
   mkdir -p -- "$WORKSPACE/$report_directory"
 worker_path=''' + shellQuote(config.workerPath) + '''
 source_path=''' + shellQuote(sourcePath) + '''
+  report_root_path=''' + shellQuote(config.reportRoot) + '''
 report_path=''' + shellQuote(reportPath) + '''
 log_path=''' + shellQuote(logPath) + '''
 worker="$(realpath -- "$WORKSPACE/$worker_path")"
 source="$(realpath -- "$WORKSPACE/$source_path")"
+  report_root="$(realpath -- "$WORKSPACE/$report_root_path")"
+  cli="$WORKSPACE/.ctl-style-tool/node_modules/@winccoa-tools-pack/npm-winccoa-ctrl-code-style/dist/cjs/cli.js"
+  test -f "$cli" || { echo "Style checker CLI not installed: $cli" >&2; exit 127; }
 status=0
-npx --yes ''' + shellQuote('@winccoa-tools-pack/npm-winccoa-ctrl-code-style@' + config.packageVersion) +
-      ' check "$worker" -v ' + shellQuote(config.version) + ' -t ' + shellQuote(config.timeoutMs.toString()) +
-      ' --report-root "$WORKSPACE" --report-format sarif --report-file "$WORKSPACE/$report_path"' +
+  node "$cli" check "$worker" -v ''' + shellQuote(config.version) + ' -t ' +
+      shellQuote(config.timeoutMs.toString()) + ''' --report-root "$report_root" \
+    --report-format sarif --report-file "$WORKSPACE/$report_path"''' +
       registrationOption + diffOption + ''' --source "$source" > "$WORKSPACE/$log_path" 2>&1 || status=$?
 cat "$WORKSPACE/$log_path"
 exit "$status"
