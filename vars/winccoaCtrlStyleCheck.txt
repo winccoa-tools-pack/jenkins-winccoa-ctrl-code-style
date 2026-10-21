@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>winccoaCtrlStyleCheck</title></head>
+<body>
+<h1>winccoaCtrlStyleCheck</h1>
+<p>Run the public WinCC OA CTL style checker serially on the current Linux Jenkins agent or container.</p>
+<h2>Syntax</h2>
+<pre>winccoaCtrlStyleCheck(
+  workerPath: 'UiFiles',
+  sourcePaths: ['UiFiles', 'Test', 'Subprojects', 'AddOns'],
+  version: '3.22'
+)</pre>
+<h2>Parameters</h2>
+<ul>
+<li><code>workerPath</code>: runnable worker project relative to the Jenkins workspace; default is <code>.</code>.</li>
+<li><code>sourcePaths</code>: non-empty list of workspace-relative source trees; defaults to the worker project.</li>
+<li><code>version</code>: installed WinCC OA major.minor version, for example <code>3.22</code>; required.</li>
+<li><code>packageVersion</code>: exact published checker version; default is <code>0.2.1</code>.</li>
+<li><code>timeoutMs</code>: WCCOActrl timeout in milliseconds; default is <code>120000</code>.</li>
+<li><code>reportDirectory</code>: workspace-relative directory for logs and SARIF; default is <code>.ctl-style-reports</code>.</li>
+<li><code>showDiff</code>: include formatter diffs in logs; default is <code>false</code>.</li>
+</ul>
+<h2>Behavior</h2>
+<p>The first check registers the runnable worker and bundled StyleCheck project, then starts CTRL in the same CLI invocation. Following source checks use <code>--no-register</code>. Scans run sequentially, each with its own log and SARIF report. Confirmed formatting findings make the build unstable; missing or invalid reports and execution failures fail the build. Reports are imported through Warnings NG and archived even when a scan fails.</p>
+<p>The caller must provide a Linux agent or container with the requested WinCC OA version, Node.js 20 or newer, npm, and registry access. This step does not allocate agents, check out sources, or create Docker containers; those remain under the consuming Jenkinsfile's control.</p>
+</body>
+</html>
