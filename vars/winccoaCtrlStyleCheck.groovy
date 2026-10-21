@@ -23,7 +23,15 @@ void call(Map options = [:]) {
       stage('CTL style ' + sourcePath) {
         String report = CtrlStyleCheck.reportPath(config, sourcePath, index)
         int status = sh(returnStatus: true, script: CtrlStyleCheck.command(config, sourcePath, index))
-        String outcome = CtrlStyleCheck.result(status, fileExists(report) ? readFile(report) : null)
+        Object parsedReport = null
+        if (fileExists(report)) {
+          try {
+            parsedReport = readJSON(text: readFile(report), returnPojo: true)
+          } catch (Exception ignored) {
+            parsedReport = null
+          }
+        }
+        String outcome = CtrlStyleCheck.result(status, parsedReport)
         failed = failed || outcome == 'FAILURE'
         findings = findings || outcome == 'UNSTABLE'
         if (fileExists(report)) {

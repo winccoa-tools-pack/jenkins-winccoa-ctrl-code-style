@@ -86,31 +86,24 @@ exit "$status"
     return config.reportDirectory + '/' + reportName + '.sarif'
   }
 
-  static String result(int status, String report) {
-    if (!report) {
+  static String result(int status, Object report) {
+    if (!(report instanceof Map) || report.version != '2.1.0' ||
+        !(report.runs instanceof List) || report.runs.isEmpty()) {
       return 'FAILURE'
     }
-    try {
-      def parsed = new JsonSlurperClassic().parseText(report)
-      if (!(parsed instanceof Map) || parsed.version != '2.1.0' ||
-          !(parsed.runs instanceof List) || parsed.runs.isEmpty()) {
+    int findings = 0
+    for (def run : report.runs) {
+      if (!(run instanceof Map) || !(run.results instanceof List) ||
+          (run.invocations != null && !(run.invocations instanceof List)) ||
+          run.invocations?.any { !(it instanceof Map) || it.executionSuccessful == false }) {
         return 'FAILURE'
       }
-      int findings = 0
-      for (def run : parsed.runs) {
-        if (!(run instanceof Map) || !(run.results instanceof List) ||
-            run.invocations?.any { it.executionSuccessful == false }) {
-          return 'FAILURE'
-        }
-        findings += run.results.size()
-      }
-      if (status == 0 && findings == 0) {
-        return 'SUCCESS'
-      }
-      return status == 2 && findings > 0 ? 'UNSTABLE' : 'FAILURE'
-    } catch (IllegalArgumentException | groovy.json.JsonException ignored) {
-      return 'FAILURE'
+      findings += run.results.size()
     }
+    if (status == 0 && findings == 0) {
+      return 'SUCCESS'
+    }
+    return status == 2 && findings > 0 ? 'UNSTABLE' : 'FAILURE'
   }
 
   static String shellQuote(String value) {

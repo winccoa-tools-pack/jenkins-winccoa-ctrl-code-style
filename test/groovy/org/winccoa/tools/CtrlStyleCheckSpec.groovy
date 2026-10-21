@@ -105,14 +105,17 @@ class CtrlStyleCheckSpec extends Specification {
 
   def 'classifies clean SARIF, formatting findings, and execution failures'() {
     given:
-    String clean = '{"version":"2.1.0","runs":[{"results":[]}]}'
-    String finding = '{"version":"2.1.0","runs":[{"results":[{"ruleId":"format"}]}]}'
-    String failedRun = '{"version":"2.1.0","runs":[{"results":[],"invocations":[{"executionSuccessful":false}]}]}'
+    Map clean = [version: '2.1.0', runs: [[results: []]]]
+    Map finding = [version: '2.1.0', runs: [[results: [[ruleId: 'format']]]]]
+    Map failedRun = [version: '2.1.0',
+             runs: [[results: [], invocations: [[executionSuccessful: false]]]]]
+    Map malformedRun = [version: '2.1.0', runs: [[results: [], invocations: 'invalid']]]
 
     expect:
     helper.result(0, clean) == 'SUCCESS'
     helper.result(2, finding) == 'UNSTABLE'
     helper.result(0, failedRun) == 'FAILURE'
+    helper.result(0, malformedRun) == 'FAILURE'
     helper.result(2, null) == 'FAILURE'
   }
 }
